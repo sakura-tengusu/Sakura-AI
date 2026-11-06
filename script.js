@@ -3347,3 +3347,51 @@ const origCaptureBtnHandler = captureBtn.onclick;
 
 window.addEventListener('resize', () => { clampPan(); applyVideoTransform(); });
 window.addEventListener('beforeunload', () => { if (stream) stream.getTracks().forEach(t=>t.stop()); });
+
+// ====== アクセスカウント（Googleフォームへ「アクセス日時」だけを送信） ======
+// 設定方法：
+//   1) Googleフォームに「記述式（短文）」の質問を1つ作る（例：アクセス日時）
+//   2) 右上「⋮」→「事前入力したURLを取得」→ 質問に適当な文字を入れて「リンクを取得」
+//   3) 取得したURLの  /forms/d/e/ ～ /viewform  の間がフォームID、
+//      URL内の  entry.xxxxxxxxxx  が質問ID。下の2つに貼り付ける
+const ACCESS_LOG_CONFIG = {
+  formId: '1FAIpQLSfEXrpnQNZagunkTz6K81Sej0OWnFvcEp2GIkvxnmgmmcXtAA',           // 例: 1FAIpQLSd...（/forms/d/e/ と /viewform の間）
+  entryId: 'entry.436307557',        // 例: entry.1234567890
+  skipLocal: true,                                // true: localhost / file:// では送信しない（テスト除外）
+  oncePerSession: true                            // true: 同じタブでのリロードは数えない
+};
+
+(function sendAccessLog() {
+  const cfg = ACCESS_LOG_CONFIG;
+  // 未設定のままなら何もしない
+  if (!cfg.formId || cfg.formId.startsWith('ここに') || !/^entry\.\d+$/.test(cfg.entryId)) return;
+
+  // 開発中のアクセスは除外
+  if (cfg.skipLocal) {
+    const h = location.hostname;
+    if (location.protocol === 'file:' || h === 'localhost' || h === '127.0.0.1' || h === '') return;
+  }
+
+  // 同じセッション（タブ）では1回だけ送る
+  const SESSION_KEY = 'access_log_sent';
+  if (cfg.oncePerSession) {
+    try {
+      if (sessionStorage.getItem(SESSION_KEY)) return;
+      sessionStorage.setItem(SESSION_KEY, '1');
+    } catch (e) { /* sessionStorage が使えない環境では毎回送信 */ }
+  }
+
+  // 日本時間の「YYYY-MM-DD HH:MM:SS」（日付と時刻のみ。他の情報は一切含めない）
+  const now = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Tokyo' });
+
+  const body = new URLSearchParams();
+  body.append(cfg.entryId, now);
+
+  fetch('https://docs.google.com/forms/d/e/' + encodeURIComponent(cfg.formId) + '/formResponse', {
+    method: 'POST',
+    mode: 'no-cors', // Googleフォームは応答を返さない（CORS非対応）ため。送信自体は行われる
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body,
+    keepalive: true
+  }).catch(() => { /* 失敗してもアプリの動作には影響させない */ });
+})();
