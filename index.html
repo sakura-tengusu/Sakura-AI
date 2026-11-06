@@ -10,7 +10,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Serif+JP:wght@300;400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261025b">
+  <link rel="stylesheet" href="style.css?v=20261025c">
+  <!-- ヘッダー上段の配置：style.css が古い/キャッシュされていても崩れないよう、ここに記述 -->
+  <style id="header-layout">
+    .header-top-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      justify-content: normal;
+      align-items: start;
+      flex-wrap: nowrap;
+      gap: 0.4rem;
+      margin-bottom: 0.2rem;
+    }
+    .header-col { display: flex; flex-direction: column; gap: 0.4rem; }
+    .header-col-left  { align-items: flex-start; justify-self: start; }
+    .header-col-right { align-items: flex-end;   justify-self: end; }
+    .header-top-row .header-emblem { margin: 0; align-self: center; }
+  </style>
 </head>
 <body>
 
@@ -518,6 +534,6 @@
   </div>
 </div>
 
-<script src="script.js?v=20261025"></script>
+<script src="script.js?v=20261025b"></script>
 </body>
 </html>
